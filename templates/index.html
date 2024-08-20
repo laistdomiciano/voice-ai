@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talk with the App</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 10px;
+            background-color: #2c2c2c;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            background-color: #007bff;
+            color: #ffffff;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #audio {
+            display: none;
+        }
+        #bubbleAnimation {
+            margin-top: 20px;
+            width: 200px;
+            height: 160px;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+        }
+        .bubble {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            transform: translateY(0);
+        }
+        /* Bubbles only animate when the 'active' class is added */
+        .active .bubble {
+            animation: bubble-animation 1.5s infinite ease-in-out;
+        }
+        .bubble:nth-child(1) {
+            left: 0;
+            animation-delay: 0s;
+        }
+        .bubble:nth-child(2) {
+            left: 40px;
+            animation-delay: 0.3s;
+        }
+        .bubble:nth-child(3) {
+            left: 80px;
+            animation-delay: 0.6s;
+        }
+        .bubble:nth-child(4) {
+            left: 120px;
+            animation-delay: 0.9s;
+        }
+        @keyframes bubble-animation {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-30px);
+            }
+        }
+        .instructions {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #aaaaaa;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Talk with the App</h1>
+        <div id="bubbleAnimation">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+    <form id="speakForm">
+        <input type="text" id="sentence" name="sentence" placeholder="Type something..." required>
+        <button type="submit">Speak</button>
+    </form>
+    <audio id="audio"></audio>
+    <p class="instructions">Type a sentence above and click "Speak" to hear it.</p>
+
+    <script>
+        const form = document.getElementById('speakForm');
+        const audio = document.getElementById('audio');
+        const bubbleAnimation = document.getElementById('bubbleAnimation');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const sentence = document.getElementById('sentence').value;
+
+            const formData = new FormData();
+            formData.append('sentence', sentence);
+            document.getElementById('sentence').value = '';
+
+            const response = await fetch('/speak', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const audioUrl = URL.createObjectURL(blob);
+                audio.src = audioUrl;
+
+                // Start animation and play audio
+                bubbleAnimation.classList.add('active');
+                audio.play();
+
+                // Stop animation when the audio ends
+                audio.onended = () => {
+                    bubbleAnimation.classList.remove('active');
+                };
+            } else {
+                alert('Something went wrong. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
